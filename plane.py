@@ -8,12 +8,11 @@ def readFile(fileName):
     with open(fileName, 'r') as infile:
         for line in infile:                                                         # while there is lines to read f/ file:
             line = line.strip()                                                     # strip whitespace
-            stateArray = [int(line[i:i+2], 16) for i in range(0, 32, 2)]            # convert hex to byte rep.
+            stateArray = [int(line[i:i+2], 16) for i in range(0, 32, 2)]            #convert hex to byte rep.
             newState = mixColumns(stateArray)                                       # Apply MixColumns to each line of file 
-            hexValues = ''.join(''.join(format(x, '02x') for x in row) for row in newState)  # change output f/ byte to hex 
-            newStateHex += hexValues
+            hexValues = ''.join(format(x, '02x') for x in newState)                 # change output f/ byte to hex 
+            newStateHex += (hexValues)           
     return newStateHex
-
 
 ''' Print Array & print to file if desired '''
 def printArray(newArray):
@@ -30,12 +29,6 @@ def printArray(newArray):
             file.write(newArray)
     print("\nExiting program . . .\n")
 
-opperator = [
-    [0x02, 0x03, 0x01, 0x01],
-    [0x01, 0x02, 0x03, 0x01],
-    [0x01, 0x01, 0x02, 0x03],
-    [0x03, 0x01, 0x01, 0x02]
-]
 
 ''' multiplying #s in GF(2^4), 
 checking if degree exceeds GF(2^4) & applying irriducible polynomial (x^8 + x^4 + x^3 + x + 1) '''
@@ -51,20 +44,22 @@ def multiply(a, b):
     return result
 
 
-''' mixColumns takes a 4x4 array, 
-it takes each column of the original state matrix '''
 def mixColumns(state):
-    mixed_state = [[0 for _ in range(4)] for _ in range(4)]
-    # Perform matrix multiplication for each column
+    # Apply the MixColumns step to the state matrix. delete
     for i in range(4):
+        column = [state[i], state[4+i], state[8+i], state[12+i]]  # Extract the column delete
+        # column = mix_single_column(column)  # Mix it
+        t = column[0] ^ column[1] ^ column[2] ^ column[3]  # XOR of all column bytes delete
+        u = column[0]  # Copy of the first element delete
+        # Mix using the AES polynomial delete
+        column[0] ^= t ^ multiply(0x02, column[0] ^ column[1])
+        column[1] ^= t ^ multiply(0x02, column[1] ^ column[2])
+        column[2] ^= t ^ multiply(0x02, column[2] ^ column[3])
+        column[3] ^= t ^ multiply(0x02, column[3] ^ u)
+        # Put the mixed column back into the state delete
         for j in range(4):
-            mixed_state[i][j] = (
-                multiply(opperator[i][0], state[0 + j]) ^
-                multiply(opperator[i][1], state[4 + j]) ^
-                multiply(opperator[i][2], state[8 + j]) ^
-                multiply(opperator[i][3], state[12 + j])
-            )
-    return mixed_state
+            state[j*4+i] = column[j]
+    return state
 
 # Main ----------------------------------------------------------------------------
 
