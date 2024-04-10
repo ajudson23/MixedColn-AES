@@ -30,6 +30,11 @@ def printArray(newArray):
             file.write(newArray)
     print("\nExiting program . . .\n")
 
+''' this matrix is used in AES, it is multiplied with the 32 bit state array 
+0x01 : multiply by 1
+0x02 : multiply by x
+0x03 : multiply by (x+1)
+'''
 opperator = [
     [0x02, 0x03, 0x01, 0x01],
     [0x01, 0x02, 0x03, 0x01],
@@ -50,21 +55,19 @@ def multiply(a, b):
         b >>= 1
     return result
 
-
-''' mixColumns takes a 4x4 array, 
-it takes each column of the original state matrix '''
+''' mixColumns takes a 4x4 array, it multiplies each state array element w/ its AES mix columns 'operator function', 
+then XOR entire column line together  '''
 def mixColumns(state):
-    mixed_state = [[0 for _ in range(4)] for _ in range(4)]
-    # Perform matrix multiplication for each column
-    for i in range(4):
-        for j in range(4):
-            mixed_state[i][j] = (
-                multiply(opperator[i][0], state[0 + j]) ^
+    mixedState = [[0 for _ in range(4)] for _ in range(4)]                          # create 4x4 matrix filled w/ 0s
+    for i in range(4):                                                              # the two for loops will interate through the 4x4 matrix
+        for j in range(4):                                                          
+            mixedState[i][j] = (                                                    # each value is multiplied with its AES opperator value
+                multiply(opperator[i][0], state[0 + j]) ^                           # after we have retreived the values of the coloumn, XOR the entire column together
                 multiply(opperator[i][1], state[4 + j]) ^
                 multiply(opperator[i][2], state[8 + j]) ^
                 multiply(opperator[i][3], state[12 + j])
             )
-    return mixed_state
+    return mixedState
 
 # Main ----------------------------------------------------------------------------
 

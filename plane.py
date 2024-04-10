@@ -8,7 +8,7 @@ def readFile(fileName):
     with open(fileName, 'r') as infile:
         for line in infile:                                                         # while there is lines to read f/ file:
             line = line.strip()                                                     # strip whitespace
-            stateArray = [int(line[i:i+2], 16) for i in range(0, 32, 2)]            #convert hex to byte rep.
+            stateArray = [int(line[i:i+2], 16) for i in range(0, 32, 2)]            # convert hex to byte rep.
             newState = mixColumns(stateArray)                                       # Apply MixColumns to each line of file 
             hexValues = ''.join(format(x, '02x') for x in newState)                 # change output f/ byte to hex 
             newStateHex += (hexValues)           
@@ -44,19 +44,18 @@ def multiply(a, b):
     return result
 
 
+''' mixColumns takes a 4x4 array, 
+it takes each column of the original state matrix '''
 def mixColumns(state):
-    # Apply the MixColumns step to the state matrix. delete
-    for i in range(4):
-        column = [state[i], state[4+i], state[8+i], state[12+i]]  # Extract the column delete
-        # column = mix_single_column(column)  # Mix it
-        t = column[0] ^ column[1] ^ column[2] ^ column[3]  # XOR of all column bytes delete
-        u = column[0]  # Copy of the first element delete
-        # Mix using the AES polynomial delete
+    for i in range(4):                                                              # for a 4x4 matrix, 4 iterations per column
+        column = [state[i], state[4+i], state[8+i], state[12+i]]  
+        t = column[0] ^ column[1] ^ column[2] ^ column[3] 
+        u = column[0] 
         column[0] ^= t ^ multiply(0x02, column[0] ^ column[1])
         column[1] ^= t ^ multiply(0x02, column[1] ^ column[2])
         column[2] ^= t ^ multiply(0x02, column[2] ^ column[3])
         column[3] ^= t ^ multiply(0x02, column[3] ^ u)
-        # Put the mixed column back into the state delete
+        # rearange the colns for the 
         for j in range(4):
             state[j*4+i] = column[j]
     return state
